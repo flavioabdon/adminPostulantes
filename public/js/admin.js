@@ -17,9 +17,9 @@ $(document).ready(function() {
             lengthMenu: [10, 25, 50, 100],
             columnDefs: [
                 { 
-                    orderable: false, 
-                    targets: 0,
-                    className: 'select-checkbox'
+                    orderable: false,
+                    className: 'select-checkbox',
+                    targets: 0
                 },
                 { responsivePriority: 1, targets: 1 },
                 { responsivePriority: 2, targets: 2 }
@@ -35,6 +35,132 @@ $(document).ready(function() {
         });
     }
 
+    const archivoModal = new bootstrap.Modal(document.getElementById('archivoModal'), {
+        backdrop: true,
+        keyboard: true
+    });
+    
+    let isFullscreen = false;
+    let originalStyles = {};
+    
+    // Función para alternar pantalla completa
+    function toggleFullscreen() {
+        const modalContent = $('.modal-content');
+        const modalDialog = $('.modal-dialog');
+        
+        if (!isFullscreen) {
+            // Guardar estilos originales
+            originalStyles = {
+                margin: modalDialog.css('margin'),
+                maxWidth: modalDialog.css('max-width'),
+                borderRadius: modalContent.css('border-radius')
+            };
+            
+            // Aplicar estilos de pantalla completa
+            modalDialog.css({
+                'margin': '0',
+                'max-width': '100%',
+                'width': '100%',
+                'height': '100vh'
+            });
+            
+            modalContent.css({
+                'border-radius': '0',
+                'height': '100vh'
+            });
+            
+            $('.modal-body').css('height', 'calc(100vh - 120px)');
+            
+            isFullscreen = true;
+            $('#fullscreenBtn').html('<i class="bi bi-fullscreen-exit"></i> Salir de pantalla completa');
+        } else {
+            // Restaurar estilos originales
+            modalDialog.css({
+                'margin': originalStyles.margin,
+                'max-width': originalStyles.maxWidth,
+                'width': '',
+                'height': '90vh'
+            });
+            
+            modalContent.css({
+                'border-radius': originalStyles.borderRadius,
+                'height': '90vh'
+            });
+            
+            $('.modal-body').css('height', 'calc(90vh - 120px)');
+            
+            isFullscreen = false;
+            $('#fullscreenBtn').html('<i class="bi bi-fullscreen"></i> Pantalla completa');
+        }
+    }
+    
+    // Manejador de clic para pantalla completa
+    $('#fullscreenBtn').on('click', toggleFullscreen);
+    
+    // Manejador para los botones de visualización
+    $(document).on('click', '.view-file-btn', function() {
+        const fileUrl = $(this).data('file-url');
+        const fileType = $(this).data('file-type');
+        const fileName = fileUrl.split('/').pop();
+        
+        // Resetear pantalla completa si estaba activa
+        if (isFullscreen) {
+            toggleFullscreen();
+        }
+        
+        // Mostrar spinner
+        $('#loadingSpinner').show();
+        $('#pdf-viewer, #image-viewer, #unsupported-viewer').hide();
+        $('#archivoModalLabel').text(`Visualizando: ${fileName}`);
+        $('#download-link, #full-download-link').attr('href', fileUrl);
+        
+        // Mostrar el modal
+        archivoModal.show();
+        
+        // Cargar contenido según tipo
+        if (fileType === 'pdf') {
+            $('#pdf-iframe').on('load', function() {
+                $('#loadingSpinner').hide();
+                $('#pdf-viewer').show();
+            }).attr('src', fileUrl);
+        } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileType)) {
+            $('#image-preview').on('load', function() {
+                $('#loadingSpinner').hide();
+                $('#image-viewer').show();
+            }).attr('src', fileUrl);
+        } else {
+            $('#loadingSpinner').hide();
+            $('#unsupported-viewer').show();
+        }
+    });
+    
+    // Manejo del cierre del modal
+    function resetModal() {
+        $('#pdf-iframe').attr('src', '').off('load');
+        $('#image-preview').attr('src', '').off('load');
+        $('#loadingSpinner').hide();
+        $('#pdf-viewer, #image-viewer, #unsupported-viewer').hide();
+    }
+    
+    $('#modalCloseBtn, .btn-close').on('click', function() {
+        resetModal();
+        archivoModal.hide();
+    });
+    
+    $('#archivoModal').on('hidden.bs.modal', resetModal);
+    
+    $(document).on('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if ($('#archivoModal').hasClass('show')) {
+                if (isFullscreen) {
+                    toggleFullscreen();
+                } else {
+                    resetModal();
+                    archivoModal.hide();
+                }
+            }
+        }
+    });
     // Función para manejar eventos de la tabla
     function initializeTableEvents(table) {
         // Selección/deselección global

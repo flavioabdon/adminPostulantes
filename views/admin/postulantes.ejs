@@ -42,6 +42,10 @@
                         <th>Celular</th>
                         <th>Tipo Postulación</th>
                         <th>Fecha Registro</th>
+                        <th>CI</th>
+                        <th>No Militancia</th>
+                        <th>Hoja de Vida</th>
+                        <th>Screenshot</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -57,11 +61,120 @@
                             <td><%= postulante.telefono %></td>
                             <td><%= postulante.celular %></td>
                             <td><%= postulante.tipo_postulacion %></td>
-                            <td><%= new Date(postulante.fecha_registro).toLocaleString() %></td>
+                            <td>
+                                <%= new Intl.DateTimeFormat('es-BO', {
+                                    timeZone: 'America/La_Paz',
+                                    year: 'numeric',
+                                    month: 'numeric',
+                                    day: 'numeric',
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    second: '2-digit',
+                                    hour12: true
+                                }).format(new Date(postulante.fecha_registro)) %>
+                            </td>
+                            <td>
+                                <% if (postulante.archivo_ci) { %>
+                                    <button class="btn btn-sm btn-outline-primary view-file-btn"
+                                            data-file-url="http://34.176.125.198:8000/<%= postulante.archivo_ci %>"
+                                            data-file-type="<%= postulante.archivo_ci.split('.').pop().toLowerCase() %>"
+                                            title="Ver CI">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </button>
+                                <% } else { %>
+                                    <span class="badge bg-secondary">No subido</span>
+                                <% } %>
+                            </td>
+                            
+                            <!-- Columna para archivo_no_militancia -->
+                            <td>
+                                <% if (postulante.archivo_no_militancia) { %>
+                                    <button class="btn btn-sm btn-outline-primary view-file-btn"
+                                            data-file-url="http://34.176.125.198:8000/<%= postulante.archivo_no_militancia %>"
+                                            data-file-type="<%= postulante.archivo_no_militancia.split('.').pop().toLowerCase() %>"
+                                            title="Ver Certificado de No Militancia">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </button>
+                                <% } else { %>
+                                    <span class="badge bg-secondary">No subido</span>
+                                <% } %>
+                            </td>
+                            
+                            <!-- Columna para archivo_hoja_de_vida -->
+                            <td>
+                                <% if (postulante.archivo_hoja_de_vida) { %>
+                                    <button class="btn btn-sm btn-outline-primary view-file-btn"
+                                            data-file-url="http://34.176.125.198:8000/<%= postulante.archivo_hoja_de_vida %>"
+                                            data-file-type="<%= postulante.archivo_hoja_de_vida.split('.').pop().toLowerCase() %>"
+                                            title="Ver Hoja de Vida">
+                                        <i class="bi bi-file-earmark-word"></i>
+                                    </button>
+                                <% } else { %>
+                                    <span class="badge bg-secondary">No subido</span>
+                                <% } %>
+                            </td>
+                            
+                            <!-- Columna para archivo_screenshot -->
+                            <td>
+                                <% if (postulante.archivo_screenshot_celular) { %>
+                                    <button class="btn btn-sm btn-outline-primary view-file-btn"
+                                            data-file-url="http://34.176.125.198:8000/<%= postulante.archivo_screenshot_celular %>"
+                                            data-file-type="<%= postulante.archivo_screenshot_celular.split('.').pop().toLowerCase() %>"
+                                            title="Ver Screenshot">
+                                        <i class="bi bi-file-earmark-image"></i>
+                                    </button>
+                                <% } else { %>
+                                    <span class="badge bg-secondary">No subido</span>
+                                <% } %>
+                            </td>
                         </tr>
                     <% }); %>
                 </tbody>
             </table>
         </form>
+    </div>
+    <!-- Modal para visualización de archivos -->
+    <div class="modal fade" id="archivoModal" tabindex="-1" aria-labelledby="archivoModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 95%; height: 90vh;">
+            <div class="modal-content h-100">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="archivoModalLabel">Visualización de Documento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-0" style="height: calc(100% - 120px);">
+                    <div class="spinner-border text-primary my-5" id="loadingSpinner" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    
+                    <!-- Visor de PDF más grande -->
+                    <div id="pdf-viewer" style="display: none; height: 100%;">
+                        <iframe id="pdf-iframe" style="width: 100%; height: 100%; border: none;"></iframe>
+                    </div>
+                    
+                    <!-- Visor de imágenes más grande -->
+                    <div id="image-viewer" style="display: none; height: 100%; overflow: auto;">
+                        <img id="image-preview" src="" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                    </div>
+                    
+                    <div id="unsupported-viewer" style="display: none; height: 100%;">
+                        <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                            <i class="bi bi-file-earmark-x fs-1 text-muted mb-3"></i>
+                            <p class="fs-5">Este tipo de archivo no puede mostrarse en el visor</p>
+                            <a id="download-link" href="#" class="btn btn-primary btn-lg">
+                                <i class="bi bi-download"></i> Descargar Archivo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="modalCloseBtn">
+                        <i class="bi bi-x-lg"></i> Cerrar
+                    </button>
+                    <a id="full-download-link" href="#" class="btn btn-primary">
+                        <i class="bi bi-download"></i> Descargar
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
