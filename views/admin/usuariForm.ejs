@@ -1,0 +1,50 @@
+<div class="card">
+    <div class="card-header">
+      <h5><%= user ? 'Editar Usuario' : 'Nuevo Usuario' %></h5>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="<%= user ? `/admin/users/update/${user.id}` : '/admin/users/create' %>">
+        <div class="mb-3">
+          <label for="username" class="form-label">Username</label>
+          <input type="text" class="form-control" id="username" name="username" value="<%= user ? user.username : '' %>" required>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" name="email" value="<%= user ? user.email : '' %>" required>
+        </div>
+        <% if (!user) { %>
+          <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+          </div>
+        <% } %>
+        <div class="mb-3">
+          <label for="rol" class="form-label">Rol</label>
+          <select class="form-select" id="rol" name="rol" required>
+            <option value="user" <%= user && user.rol === 'user' ? 'selected' : '' %>>Usuario</option>
+            <option value="admin" <%= user && user.rol === 'admin' ? 'selected' : '' %>>Administrador</option>
+          </select>
+        </div>
+        <% if (user) { %>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="activo" name="activo" <%= user.activo ? 'checked' : '' %>>
+            <label class="form-check-label" for="activo">Activo</label>
+          </div>
+        <% } %>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="/admin/users" class="btn btn-secondary">Cancelar</a>
+      </form>
+  
+      <% if (user) { %>
+        <hr>
+        <form method="POST" action="/admin/users/change-password/<%= user.id %>">
+          <h5>Cambiar Contraseña</h5>
+          <div class="mb-3">
+            <label for="newPassword" class="form-label">Nueva Contraseña</label>
+            <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+          </div>
+          <button type="submit" class="btn btn-warning">Cambiar Contraseña</button>
+        </form>
+      <% } %>
+    </div>
+  </div>

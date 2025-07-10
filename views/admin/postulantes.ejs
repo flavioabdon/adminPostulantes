@@ -1,0 +1,67 @@
+<!-- postulantes.ejs -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Lista de Postulantes</h5>
+        <span class="badge bg-primary"><%= postulantes.length %> registros</span>
+    </div>
+    <div class="card-body">
+        <% if (error_msg && error_msg.length > 0) { %>
+            <div class="alert alert-danger"><%= error_msg %></div>
+        <% } %>
+        
+        <form id="exportForm" action="/admin/exportar-postulantes" method="POST">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <select class="form-select" name="tipo" id="exportType" required>
+                        <option value="">Seleccione acción...</option>
+                        <option value="excel">Exportar selección a Excel</option>
+                        <option value="pdf">Exportar selección a PDF</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="button" id="exportSelectedBtn" class="btn btn-primary me-2">
+                        <i class="bi bi-download"></i> Exportar selección
+                    </button>
+                    <a href="/admin/exportar-todos-excel" id="exportAllExcelBtn" class="btn btn-success">
+                        <i class="bi bi-file-excel"></i> Descargar todo Excel
+                    </a>
+                </div>
+            </div>
+            
+            <table id="postulantesTable" class="table table-striped table-bordered" style="width:100%">
+                <thead>
+                    <tr>
+                        <th width="20px">
+                            <input type="checkbox" id="selectAll">
+                        </th>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>CI</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Celular</th>
+                        <th>Tipo Postulación</th>
+                        <th>Fecha Registro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% postulantes.forEach(postulante => { %>
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="ids" value="<%= postulante.id %>">
+                            </td>
+                            <td><%= postulante.id %></td>
+                            <td><%= `${postulante.nombre} ${postulante.apellido_paterno} ${postulante.apellido_materno}` %></td>
+                            <td><%= `${postulante.cedula_identidad}${postulante.complemento || ''} ${postulante.expedicion}` %></td>
+                            <td><%= postulante.email %></td>
+                            <td><%= postulante.telefono %></td>
+                            <td><%= postulante.celular %></td>
+                            <td><%= postulante.tipo_postulacion %></td>
+                            <td><%= new Date(postulante.fecha_registro).toLocaleString() %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </form>
+    </div>
+</div>

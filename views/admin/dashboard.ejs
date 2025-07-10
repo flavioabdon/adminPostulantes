@@ -1,0 +1,48 @@
+<div class="card">
+    <div class="card-header">
+      <h5>Dashboard</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="alert alert-info">
+            Bienvenido al panel de administración. Seleccione una opción del menú para comenzar.
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mt-4">
+        <div class="col-md-4">
+          <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Postulantes</h5>
+              <p class="card-text">Gestión de postulantes registrados</p>
+              <a href="/admin/postulantes" class="btn btn-light">Ir a Postulantes</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Estadísticas</h5>
+              <p class="card-text">Visualización de datos estadísticos</p>
+              <a href="/admin/estadisticas" class="btn btn-light">Ver Estadísticas</a>
+            </div>
+          </div>
+        </div>
+        
+        <% if (user && user.rol === 'admin') { %>
+          <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+              <div class="card-body">
+                <h5 class="card-title">Usuarios</h5>
+                <p class="card-text">Administración de usuarios del sistema</p>
+                <a href="/admin/users" class="btn btn-light">Gestionar Usuarios</a>
+              </div>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>

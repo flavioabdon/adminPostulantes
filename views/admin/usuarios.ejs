@@ -1,0 +1,41 @@
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Administración de Usuarios</h5>
+      <a href="/admin/users/create" class="btn btn-success btn-sm">Nuevo Usuario</a>
+    </div>
+    <div class="card-body">
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% users.forEach(user => { %>
+            <tr>
+              <td><%= user.id %></td>
+              <td><%= user.username %></td>
+              <td><%= user.email %></td>
+              <td><%= user.rol %></td>
+              <td>
+                <% if (user.activo) { %>
+                  <span class="badge bg-success">Activo</span>
+                <% } else { %>
+                  <span class="badge bg-danger">Inactivo</span>
+                <% } %>
+              </td>
+              <td>
+                <a href="/admin/users/edit/<%= user.id %>" class="btn btn-sm btn-primary">Editar</a>
+                <a href="/admin/users/delete/<%= user.id %>" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro?')">Eliminar</a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>

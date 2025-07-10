@@ -1,0 +1,117 @@
+body {
+    background-color: #f8f9fa;
+  }
+  
+  .card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+  
+  .card-header {
+    border-radius: 10px 10px 0 0 !important;
+    font-weight: 600;
+  }
+  
+  .navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .table {
+    margin-bottom: 0;
+  }
+  
+  .table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+  }
+  
+  .btn {
+    border-radius: 5px;
+    font-weight: 500;
+  }
+  
+  .form-control, .form-select {
+    border-radius: 5px;
+    padding: 8px 12px;
+  }
+  
+  .alert {
+    border-radius: 5px;
+  }
+  
+  /* Estilos para el login */
+  .bg-light {
+    background-color: #f8f9fa !important;
+  }
+  
+  .login-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding-top: 100px;
+  }
+  
+  /* Estilos para DataTables */
+  .dataTables_wrapper .dataTables_filter input {
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    padding: 5px 10px;
+  }
+  
+  .dataTables_wrapper .dataTables_length select {
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    padding: 5px;
+  }
+  
+  /* Estilos para los cards de estadísticas */
+  .card-stat {
+    transition: transform 0.3s;
+  }
+  
+  .card-stat:hover {
+    transform: translateY(-5px);
+  }
+  
+  /* Estilos para el dashboard */
+  .dashboard-card {
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .card-stat, .dashboard-card {
+      margin-bottom: 15px;
+    }
+  }
+  /* En tu archivo styles.css */
+table.dataTable tbody tr.selected td {
+    background-color: rgba(13, 110, 253, 0.1);
+    transition: background-color 0.2s ease;
+}
+
+#selectAll {
+    margin-left: 5px;
+}
+
+.dataTables_wrapper .dataTables_info {
+    padding-top: 0.75em;
+}
+/* Estilo para botón de selección */
+#selectAllBtn {
+    transition: all 0.3s ease;
+  }
+  
+  /* Estilo para filas seleccionadas */
+  tr.selected td {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+  }
+  
+  /* Iconos Bootstrap */
+  @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css");
