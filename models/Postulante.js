@@ -13,34 +13,29 @@ class Postulante {
 
   static async getStats() {
     try {
-      const client = await pool.connect();
-      try {
-        // Total postulantes
-        const totalRes = await client.query('SELECT COUNT(*) FROM postulantes');
-        const total = parseInt(totalRes.rows[0].count);
+      // 1. Total de postulantes
+      const totalRes = await query('SELECT COUNT(*) FROM postulantes');
+      const total = parseInt(totalRes.rows[0].count);
 
-        // Promedio por hora
-        const avgRes = await client.query(`
-          SELECT COUNT(*) / (EXTRACT(EPOCH FROM (MAX(fecha_registro) - MIN(fecha_registro)))/3600) as promedio_hora 
-          FROM postulantes
-        `);
-        const promedioHora = parseFloat(avgRes.rows[0].promedio_hora).toFixed(2) || 0;
+      // 2. Promedio de postulaciones por hora
+      const avgRes = await query(`
+        SELECT COUNT(*) / (EXTRACT(EPOCH FROM (MAX(fecha_registro) - MIN(fecha_registro)))/3600) as promedio_hora 
+        FROM postulantes
+      `);
+      const promedioHora = parseFloat(avgRes.rows[0].promedio_hora || 0).toFixed(2);
 
-        // Postulaciones por tipo
-        const tipoRes = await client.query(`
-          SELECT tipo_postulacion, COUNT(*) 
-          FROM postulantes 
-          GROUP BY tipo_postulacion
-        `);
+      // 3. Postulaciones agrupadas por tipo
+      const tipoRes = await query(`
+        SELECT tipo_postulacion, COUNT(*) 
+        FROM postulantes 
+        GROUP BY tipo_postulacion
+      `);
 
-        return {
-          total,
-          promedioHora,
-          porTipo: tipoRes.rows
-        };
-      } finally {
-        client.release();
-      }
+      return {
+        total,
+        promedioHora,
+        porTipo: tipoRes.rows
+      };
     } catch (error) {
       console.error('Error en Postulante.getStats:', error);
       throw new Error('Error al obtener estadísticas');
