@@ -41,7 +41,22 @@ class Postulante {
       throw new Error('Error al obtener estadísticas');
     }
   }
-
+  static async getInscritosPorHora() {
+    try {
+      const result = await query(`
+        SELECT 
+          DATE_TRUNC('hour', fecha_registro) AS hora,
+          COUNT(*) AS cantidad
+        FROM postulantes
+        GROUP BY hora
+        ORDER BY hora ASC
+      `);
+      return result.rows;
+    } catch (error) {
+      console.error('Error en getInscritosPorHora:', error);
+      throw new Error('Error al obtener datos por hora');
+    }
+  }
   static async getByIds(ids) {
     try {
       const result = await query('SELECT * FROM postulantes WHERE id = ANY($1)', [ids]);

@@ -1,37 +1,94 @@
 <div class="card">
-    <div class="card-header">
-      <h5>Estadísticas de Postulaciones</h5>
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-4">
-          <div class="card text-white bg-primary mb-3">
-            <div class="card-header">Total Postulantes</div>
-            <div class="card-body">
-              <h1 class="card-title text-center"><%= stats.total %></h1>
-            </div>
+  <div class="card-header">
+    <h5>Estadísticas de Postulaciones</h5>
+  </div>
+  <div class="card-body">
+    <!-- Tarjetas de resumen (ya existentes) -->
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+          <div class="card-header">Total Postulantes</div>
+          <div class="card-body">
+            <h1 class="card-title text-center"><%= stats.total %></h1>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="card text-white bg-success mb-3">
-            <div class="card-header">Promedio por Hora</div>
-            <div class="card-body">
-              <h1 class="card-title text-center"><%= stats.promedioHora %></h1>
-            </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+          <div class="card-header">Promedio por Hora</div>
+          <div class="card-body">
+            <h1 class="card-title text-center"><%= stats.promedioHora %></h1>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="card text-white bg-info mb-3">
-            <div class="card-header">Postulaciones por Tipo</div>
-            <div class="card-body">
-              <ul class="list-unstyled">
-                <% stats.porTipo.forEach(tipo => { %>
-                  <li><%= tipo.tipo_postulacion %>: <strong><%= tipo.count %></strong></li>
-                <% }); %>
-              </ul>
-            </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card text-white bg-info mb-3">
+          <div class="card-header">Postulaciones por Tipo</div>
+          <div class="card-body">
+            <ul class="list-unstyled">
+              <% stats.porTipo.forEach(tipo => { %>
+                <li><%= tipo.tipo_postulacion %>: <strong><%= tipo.count %></strong></li>
+              <% }); %>
+            </ul>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Nuevo: Gráfico de líneas -->
+    <div class="card mt-4">
+      <div class="card-header">
+        <h5>Inscripciones por Hora</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="graficoInscritos" height="100"></canvas>
+      </div>
+    </div>
   </div>
+</div>
+
+<!-- Script para Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Datos desde el backend
+  const inscritosPorHora = <%- JSON.stringify(inscritosPorHora) %>;
+
+  // Formatear datos para Chart.js
+  const horas = inscritosPorHora.map(item => new Date(item.hora).toLocaleTimeString());
+  const cantidades = inscritosPorHora.map(item => item.cantidad);
+
+  // Crear gráfico
+  const ctx = document.getElementById('graficoInscritos').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: horas,
+      datasets: [{
+        label: 'Inscritos por Hora',
+        data: cantidades,
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Cantidad de Inscritos'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Hora del Día'
+          }
+        }
+      }
+    }
+  });
+</script>
