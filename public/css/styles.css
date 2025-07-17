@@ -118,7 +118,7 @@ table.dataTable tbody tr.selected td {
 
   .modal-body {
     min-height: 300px;
-    display: flex;
+    /*display: flex;/*/
     align-items: center;
     justify-content: center;
 }
