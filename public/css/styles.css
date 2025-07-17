@@ -151,7 +151,7 @@ table.dataTable tbody tr.selected td {
     
     /* Mejoras para la visualización de imágenes */
     #image-viewer {
-        display: flex;
+        /*display: flex;*/
         align-items: center;
         justify-content: center;
         background-color: #f8f9fa;
