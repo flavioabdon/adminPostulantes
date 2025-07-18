@@ -151,14 +151,8 @@ $(document).ready(function() {
     
     $(document).on('keydown', function(e) {
         if (e.key === 'Escape') {
-            if ($('#archivoModal').hasClass('show')) {
-                if (isFullscreen) {
-                    toggleFullscreen();
-                } else {
-                    resetModal();
-                    archivoModal.hide();
-                }
-            }
+            resetModal();
+            archivoModal.hide();
         }
     });
     // Función para manejar eventos de la tabla
