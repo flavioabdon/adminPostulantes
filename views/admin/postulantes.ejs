@@ -37,10 +37,10 @@
                         <th>ID</th>
                         <th>Nombre Completo</th>
                         <th>CI</th>
-                        <th>Email</th>
-                        <th>Teléfono</th>
+                        <th>Nivel de estudios</th>
+                        <th>Carrera</th>
+                        <th>Nro de procesos Experiencia</th>
                         <th>Celular</th>
-                        <th>Tipo Postulación</th>
                         <th>Fecha Registro</th>
                         <th>CI</th>
                         <th>No Militancia</th>
@@ -57,10 +57,10 @@
                             <td><%= postulante.id %></td>
                             <td><%= `${postulante.nombre} ${postulante.apellido_paterno} ${postulante.apellido_materno}` %></td>
                             <td><%= `${postulante.cedula_identidad}${postulante.complemento || ''} ${postulante.expedicion}` %></td>
-                            <td><%= postulante.email %></td>
-                            <td><%= postulante.telefono %></td>
+                            <td><%= postulante.grado_instruccion %></td>
+                            <td><%= postulante.carrera %></td>
+                            <td><%= postulante.experiencia_general %></td>
                             <td><%= postulante.celular %></td>
-                            <td><%= postulante.tipo_postulacion %></td>
                             <td>
                                 <%= new Intl.DateTimeFormat('es-BO', {
                                     timeZone: 'America/La_Paz',
