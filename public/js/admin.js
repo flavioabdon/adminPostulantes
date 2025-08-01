@@ -1,4 +1,9 @@
 $(document).ready(function() {
+    //refrescar cada cierto tiempo
+    setInterval(function() {
+        location.reload(); // Refresca la página cada 2.5 minutos
+    }, 150000); // 150000 ms = 2.5 minutos
+
     // Verificar si la tabla existe y no está ya inicializada
     if ($('#postulantesTable').length && !$.fn.DataTable.isDataTable('#postulantesTable')) {
         // Destruir cualquier instancia previa (por seguridad)
