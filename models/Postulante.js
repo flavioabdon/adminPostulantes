@@ -1,14 +1,26 @@
 const { query } = require('../config/db');
 
 class Postulante {
-  static async getAll() {
-    try {
+   static async getAll() {
+     try {
       const result = await query('SELECT * FROM postulantes ORDER BY fecha_registro DESC');
       return result.rows;
-    } catch (error) {
-      console.error('Error en Postulante.getAll:', error);
-      throw new Error('Error al obtener postulantes');
-    }
+     } catch (error) {
+       console.error('Error en Postulante.getAll:', error);
+       throw new Error('Error al obtener postulantes');
+     }
+   }
+
+  static async getPaged(limit, offset) {
+
+    const [postulantes, totalResult] = await Promise.all([
+      query('SELECT * FROM postulantes ORDER BY fecha_registro DESC LIMIT $1 OFFSET $2', [limit, offset]),
+      query('SELECT COUNT(*) from POSTULANTES')
+    ])
+    return {
+      rows: postulantes.rows,
+      count: parseInt(totalResult.rows[0].count)
+    };
   }
 
   static async getStats() {

@@ -6,17 +6,27 @@ exports.dashboard = (req, res) => {
 };
 
 exports.postulantes = async (req, res) => {
+
+    const page = parseInt(req.query.page) || 1; // pagina actual
+    const limit = 25;                           // limite de registros
+    const offset = (page - 1) * limit;          // salto para la consulta
+
     try {
-      const postulantes = await Postulante.getAll();
+      const { rows: postulantes, count: total } = await Postulante.getPaged(limit, offset); // Obtiene los postulantes paginados
+      const totalPages = Math.ceil(total / limit); // Calcula el total de paginas
+      //const postulantes = await Postulante.getAll();
       console.log('Postulantes obtenidos:', postulantes.length); // Verifica en consola
       
       res.render('admin/postulantes', { 
         postulantes: postulantes || [],
+        currentPage: page,  // pagina actual
+        totalPages: totalPages,         // total de paginas
         error_msg: req.flash('error_msg'),
         info_msg: req.flash('info_msg'),
         success_msg: req.flash('success_msg'),
         layout: 'layout'
       });
+      
     } catch (error) {
       console.error('Error en postulantes:', error);
       req.flash('error_msg', 'Error al cargar postulantes');
@@ -44,9 +54,9 @@ exports.postulantes = async (req, res) => {
   };
 exports.exportarTodosExcel = async (req, res) => {
     try {
-        const postulantes = await Postulante.getAll();
-        
-        const buffer = await generateExcel(postulantes);
+        const result = await Postulante.getAll();
+        console.log('Exportando todos los postulantes a Excel:', result.length);
+        const buffer = await generateExcel(result);
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', 'attachment; filename=postulantes_completos.xlsx');
         return res.send(buffer);
