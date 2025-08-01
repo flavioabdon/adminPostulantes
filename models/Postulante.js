@@ -81,7 +81,7 @@ class Postulante {
 
   static async getByCI(cedula_identidad) {
     try {
-      const postulantes = await query( 'SELECT * FROM postulantes WHERE cedula_identidad = $1', [cedula_identidad]);
+      const postulantes = await query( 'SELECT * FROM postulantes WHERE cedula_identidad = $1 ORDER BY fecha_registro DESC', [cedula_identidad]);
       return postulantes.rows; // Retorna el primer postulante encontrado
     } catch (error) {
       console.error('Error en Postulante.getByCI:', error);
@@ -91,7 +91,7 @@ class Postulante {
 
   static async getByApellido(Apellido){
     try {
-      const postulantes = await query( 'SELECT * FROM postulantes WHERE apellido_paterno ILIKE $1 OR apellido_materno ILIKE $1', [`%${Apellido}%`]);
+      const postulantes = await query( 'SELECT * FROM postulantes WHERE apellido_paterno ILIKE $1 OR apellido_materno ILIKE $1 ORDER BY fecha_registro DESC', [`%${Apellido}%`]);
       return postulantes.rows; // Retorna todos los postulantes que coincidan
     } catch (error) {
       console.error('Error en Postulante.getByApellido:', error);

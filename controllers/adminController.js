@@ -6,7 +6,7 @@ exports.dashboard = (req, res) => {
 };
 
 exports.postulantes = async (req, res) => {
-
+   
     const page = parseInt(req.query.page) || 1; // pagina actual
     const limit = 25;                           // limite de registros
     const offset = (page - 1) * limit;          // salto para la consulta

@@ -15,6 +15,7 @@ $(document).ready(function() {
             dom: '<"top"<"row"<"col-md-6"l><"col-md-6"f>>><"row"<"col-md-12"tr>><"bottom"<"row"<"col-md-6"i><"col-md-6"p>>>',
             pageLength: 25,
             lengthMenu: [10, 25, 50, 100],
+            searching: false,
             columnDefs: [
                 { 
                     orderable: false,
@@ -240,7 +241,7 @@ $(document).ready(function() {
             
             Swal.fire({
                 title: 'Confirmar descarga completa',
-                text: `¿Desea descargar todos los ${table.rows().count()} postulantes en Excel?`,
+                text: `¿Desea descargar TODOS los postulantes en Excel?`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Descargar',
