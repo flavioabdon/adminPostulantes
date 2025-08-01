@@ -8,16 +8,26 @@
         <% if (error_msg && error_msg.length > 0) { %>
             <div class="alert alert-danger"><%= error_msg %></div>
         <% } %>
+        <form method="GET" action="/admin/postulantes/search" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="ci" class="form-control mx-3" placeholder="Buscar por CI">
+                <input type="text" name="apellido" class="form-control mx-3" placeholder="Buscar por Apellido">
+                <button type="submit" class="btn btn-primary mx-3">Buscar</button>
+                <a href="/admin/postulantes">
+                    <button type="button" class="btn btn-danger mx-1">Limpiar</button>
+                </a>
+            </div>
+        </form>
         
         <form id="exportForm" action="/admin/exportar-postulantes" method="POST">
             <div class="row mb-3">
-                <div class="col-md-4">
+                <!-- <div class="col-md-4"> -->
                     <!-- <select class="form-select" name="tipo" id="exportType" required>
                         <option value="">Seleccione acción...</option>
                         <option value="excel">Exportar selección a Excel</option>
                         <option value="pdf">Exportar selección a PDF</option>
                     </select> -->
-                </div>
+                <!-- </div> -->
                 <div class="col-md-4">
                     <!-- <button type="button" id="exportSelectedBtn" class="btn btn-primary me-2">
                         <i class="bi bi-download"></i> Exportar selección
@@ -27,7 +37,8 @@
                     </a>
                 </div>
             </div>
-            
+        </form>
+        
             <table id="postulantesTable" class="table table-striped table-bordered" style="width:100%">
                 <thead>
                     <tr>
@@ -76,7 +87,7 @@
                             <td>
                                 <% if (postulante.archivo_ci) { %>
                                     <button class="btn btn-sm btn-outline-primary view-file-btn"
-                                            data-file-url="http://34.176.125.198:8000/<%= postulante.archivo_ci %>"
+                                            data-file-url="http://34.176.30.151:8000/<%= postulante.archivo_ci %>"
                                             data-file-type="<%= postulante.archivo_ci.split('.').pop().toLowerCase() %>"
                                             title="Ver CI">
                                         <i class="bi bi-file-earmark-pdf"></i>
@@ -90,7 +101,7 @@
                             <td>
                                 <% if (postulante.archivo_no_militancia) { %>
                                     <button class="btn btn-sm btn-outline-primary view-file-btn"
-                                            data-file-url="http://34.176.125.198:8000/<%= postulante.archivo_no_militancia %>"
+                                            data-file-url="http://34.176.30.151:8000/<%= postulante.archivo_no_militancia %>"
                                             data-file-type="<%= postulante.archivo_no_militancia.split('.').pop().toLowerCase() %>"
                                             title="Ver Certificado de No Militancia">
                                         <i class="bi bi-file-earmark-pdf"></i>
@@ -104,7 +115,7 @@
                             <td>
                                 <% if (postulante.archivo_hoja_de_vida) { %>
                                     <button class="btn btn-sm btn-outline-primary view-file-btn"
-                                            data-file-url="http://34.176.125.198:8000/<%= postulante.archivo_hoja_de_vida %>"
+                                            data-file-url="http://34.176.30.151:8000/<%= postulante.archivo_hoja_de_vida %>"
                                             data-file-type="<%= postulante.archivo_hoja_de_vida.split('.').pop().toLowerCase() %>"
                                             title="Ver Hoja de Vida">
                                         <i class="bi bi-file-earmark-word"></i>
@@ -118,7 +129,7 @@
                             <td>
                                 <% if (postulante.archivo_screenshot_celular) { %>
                                     <button class="btn btn-sm btn-outline-primary view-file-btn"
-                                            data-file-url="http://34.176.125.198:8000/<%= postulante.archivo_screenshot_celular %>"
+                                            data-file-url="http://34.176.30.151:8000/<%= postulante.archivo_screenshot_celular %>"
                                             data-file-type="<%= postulante.archivo_screenshot_celular.split('.').pop().toLowerCase() %>"
                                             title="Ver Screenshot">
                                         <i class="bi bi-file-earmark-image"></i>
@@ -132,37 +143,39 @@
                 </tbody>
                 
             </table>
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    <% if (currentPage > 3) { %>
-                        <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
-                        <li class="page-item disabled"><span class="page-link">...</span></li>
-                    <% } %>
+            <% if (!isSearch) { %> 
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        <% if (currentPage > 3) { %>
+                            <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        <% } %>
 
-                    <% 
-                        const start = Math.max(1, currentPage - 2);
-                        const end = Math.min(totalPages, currentPage + 2);
-                        for (let i = start; i <= end; i++) { 
-                    %>
-                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
-                        </li>
-                    <% } %>
+                        <% 
+                            const start = Math.max(1, currentPage - 2);
+                            const end = Math.min(totalPages, currentPage + 2);
+                            for (let i = start; i <= end; i++) { 
+                        %>
+                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                            </li>
+                        <% } %>
 
-                    <% if (currentPage < totalPages - 2) { %>
-                        <li class="page-item disabled"><span class="page-link">...</span></li>
-                        <li class="page-item"><a class="page-link" href="?page=<%= totalPages %>"><%= totalPages %></a></li>
-                    <% } %>
+                        <% if (currentPage < totalPages - 2) { %>
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                            <li class="page-item"><a class="page-link" href="?page=<%= totalPages %>"><%= totalPages %></a></li>
+                        <% } %>
 
-                    <% if (currentPage < totalPages) { %>
-                        <li class="page-item">
-                        <a class="page-link" href="?page=<%= currentPage + 1 %>">»</a>
-                        </li>
-                    <% } %>
-                </ul>
-            </nav>
+                        <% if (currentPage < totalPages) { %>
+                            <li class="page-item">
+                            <a class="page-link" href="?page=<%= currentPage + 1 %>">»</a>
+                            </li>
+                        <% } %>
+                    </ul>
+                </nav>
+            <% } %>
 
-        </form>
+        
     </div>
     <!-- Modal para visualización de archivos -->
     <div class="modal fade" id="archivoModal" tabindex="-1" aria-labelledby="archivoModalLabel" aria-hidden="true" data-bs-backdrop="static">
