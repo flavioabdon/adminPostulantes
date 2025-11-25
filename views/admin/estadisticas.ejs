@@ -1,94 +1,591 @@
-<div class="card">
-  <div class="card-header">
-    <h5>Estadísticas de Postulaciones</h5>
-  </div>
-  <div class="card-body">
-    <!-- Tarjetas de resumen (ya existentes) -->
-    <div class="row">
-      <div class="col-md-4">
-        <div class="card text-white bg-primary mb-3">
-          <div class="card-header">Total Postulantes</div>
-          <div class="card-body">
-            <h1 class="card-title text-center"><%= stats.total %></h1>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card text-white bg-success mb-3">
-          <div class="card-header">Promedio por Hora</div>
-          <div class="card-body">
-            <h1 class="card-title text-center"><%= stats.promedioHora %></h1>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card text-white bg-info mb-3">
-          <div class="card-header">Postulaciones por Tipo</div>
-          <div class="card-body">
-            <ul class="list-unstyled">
-              <% stats.porTipo.forEach(tipo => { %>
-                <li><%= tipo.tipo_postulacion %>: <strong><%= tipo.count %></strong></li>
-              <% }); %>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Nuevo: Gráfico de líneas -->
-    <div class="card mt-4">
-      <div class="card-header">
-        <h5>Inscripciones por Hora</h5>
-      </div>
-      <div class="card-body">
-        <canvas id="graficoInscritos" height="100"></canvas>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Script para Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // Datos desde el backend
-  const inscritosPorHora = <%- JSON.stringify(inscritosPorHora) %>;
-
-  // Formatear datos para Chart.js
-  const horas = inscritosPorHora.map(item => new Date(item.hora).toLocaleTimeString());
-  const cantidades = inscritosPorHora.map(item => item.cantidad);
-
-  // Crear gráfico
-  const ctx = document.getElementById('graficoInscritos').getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: horas,
-      datasets: [{
-        label: 'Inscritos por Hora',
-        data: cantidades,
-        borderColor: 'rgba(75, 192, 192, 1)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        tension: 0.3,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Cantidad de Inscritos'
-          }
-        },
-        x: {
-          title: {
-            display: true,
-            text: 'Hora del Día'
-          }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas - Panel Administrativo</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/styles.css">
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #e67e22;
+            --light-bg: #f8f9fa;
+            --border-color: #e9ecef;
         }
-      }
-    }
-  });
-</script>
+        
+        body {
+            background-color: #f5f7f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: var(--primary-color) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+            color: #ecf0f1 !important;
+        }
+        
+        .nav-link {
+            color: #bdc3c7 !important;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: #ecf0f1 !important;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        .card-header {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 8px 8px 0 0 !important;
+            font-weight: 600;
+            border: none;
+        }
+        
+        .stats-card {
+            transition: transform 0.3s ease;
+            border-left: 4px solid;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stats-card.bg-primary { border-left-color: var(--accent-color); }
+        .stats-card.bg-success { border-left-color: var(--success-color); }
+        .stats-card.bg-info { border-left-color: #17a2b8; }
+        .stats-card.bg-warning { border-left-color: var(--warning-color); }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .cargo-badge {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            margin: 2px;
+        }
+        
+        .cargo-asistente { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .cargo-notario-rural { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .cargo-notario-urbano { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .cargo-tecnico { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
+        
+        .list-group-item {
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 20px;
+        }
+        
+        .list-group-item:last-child {
+            border-bottom: none;
+        }
+        
+        .progress {
+            height: 8px;
+            margin-top: 5px;
+        }
+        
+        .page-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .page-subtitle {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-number {
+                font-size: 2rem;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+            
+            .card-body {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar Integrado -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/admin/dashboard">
+                <i class="bi bi-shield-check me-2"></i>
+                Panel Administrativo
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/dashboard">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/postulantes">
+                            <i class="bi bi-people me-1"></i>Postulantes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/estadisticas">
+                            <i class="bi bi-bar-chart me-1"></i>Estadísticas
+                        </a>
+                    </li>
+                    <% if (user && user.rol === 'admin') { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/users">
+                            <i class="bi bi-person-gear me-1"></i>Usuarios
+                        </a>
+                    </li>
+                    <% } %>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <%= user ? user.username : 'Usuario' %>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><span class="dropdown-item-text">
+                                <small class="text-muted"><%= user ? user.email : '' %></small>
+                            </span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="/logout">
+                                    <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Header Section -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="page-title">
+                            <i class="bi bi-bar-chart-fill me-2"></i>Estadísticas de Postulaciones
+                        </h1>
+                        <p class="page-subtitle">Análisis y métricas del proceso de postulación</p>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-light text-dark fs-6 px-3 py-2 border">
+                            <i class="bi bi-calendar me-1"></i>
+                            <%= new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <% if (success_msg && success_msg.length > 0) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <%= success_msg %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <% } %>
+                
+                <% if (error_msg && error_msg.length > 0) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <%= error_msg %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <% } %>
+
+                <!-- Estadísticas Principales -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-white bg-primary stats-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Total Postulantes</h6>
+                                        <h1 class="stats-number mb-0"><%= stats.total %></h1>
+                                        <small class="opacity-75">Registros totales</small>
+                                    </div>
+                                    <i class="bi bi-people-fill display-4 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-success stats-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Promedio por Hora</h6>
+                                        <h1 class="stats-number mb-0"><%= stats.promedioHora %></h1>
+                                        <small class="opacity-75">Inscripciones/hora</small>
+                                    </div>
+                                    <i class="bi bi-clock-fill display-4 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-info stats-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Cargos Activos</h6>
+                                        <h1 class="stats-number mb-0">4</h1>
+                                        <small class="opacity-75">Tipos diferentes</small>
+                                    </div>
+                                    <i class="bi bi-briefcase-fill display-4 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-warning stats-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">Tasa de Registro</h6>
+                                        <h1 class="stats-number mb-0"><%= (stats.promedioHora > 10 ? 'Alta' : stats.promedioHora > 5 ? 'Media' : 'Baja') %></h1>
+                                        <small class="opacity-75">Actividad del sistema</small>
+                                    </div>
+                                    <i class="bi bi-graph-up display-4 opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Distribución por Cargos -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-pie-chart me-2"></i>Distribución por Cargos
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="graficoCargos"></canvas>
+                                </div>
+                                <div class="mt-3">
+                                    <% 
+                                        const cargos = {
+                                            'ASISTENTE DE MEGACENTRO': 0,
+                                            'NOTARIO OPERADOR RURAL': 0,
+                                            'NOTARIO OPERADOR URBANO': 0,
+                                            'TECNICO LOGISTICO': 0
+                                        };
+                                        
+                                        // Contar postulaciones por cargo
+                                        if (stats.porTipo && stats.porTipo.length > 0) {
+                                            stats.porTipo.forEach(item => {
+                                                const cargo = item.cargo_postulacion || item.tipo_postulacion;
+                                                if (cargos.hasOwnProperty(cargo)) {
+                                                    cargos[cargo] = parseInt(item.count);
+                                                }
+                                            });
+                                        }
+                                        
+                                        const totalCargos = Object.values(cargos).reduce((a, b) => a + b, 0);
+                                    %>
+                                    
+                                    <div class="list-group">
+                                        <% Object.entries(cargos).forEach(([cargo, count]) => { 
+                                            const porcentaje = totalCargos > 0 ? ((count / totalCargos) * 100).toFixed(1) : 0;
+                                            let cargoClass = 'cargo-otro';
+                                            if (cargo.includes('ASISTENTE')) cargoClass = 'cargo-asistente';
+                                            else if (cargo.includes('RURAL')) cargoClass = 'cargo-notario-rural';
+                                            else if (cargo.includes('URBANO')) cargoClass = 'cargo-notario-urbano';
+                                            else if (cargo.includes('TECNICO')) cargoClass = 'cargo-tecnico';
+                                        %>
+                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div class="flex-grow-1">
+                                                    <span class="badge <%= cargoClass %> cargo-badge me-2"><%= cargo %></span>
+                                                    <small class="text-muted"><%= count %> postulantes</small>
+                                                    <div class="progress">
+                                                        <div class="progress-bar" 
+                                                             style="width: <%= porcentaje %>%; background: inherit;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-light text-dark"><%= porcentaje %>%</span>
+                                            </div>
+                                        <% }); %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inscripciones por Hora -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-graph-up me-2"></i>Inscripciones por Hora
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="graficoInscritos"></canvas>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <small class="text-muted">Hora Pico</small>
+                                            <div class="fw-bold text-primary" id="horaPico">--:--</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted">Máximo</small>
+                                            <div class="fw-bold text-success" id="maxInscritos">0</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted">Promedio</small>
+                                            <div class="fw-bold text-info" id="promedioInscritos">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estadísticas Detalladas -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-list-check me-2"></i>Resumen Detallado
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-muted mb-3">Cargos Más Solicitados</h6>
+                                        <div class="list-group">
+                                            <% 
+                                                const cargosOrdenados = Object.entries(cargos)
+                                                    .sort(([,a], [,b]) => b - a)
+                                                    .slice(0, 3);
+                                            %>
+                                            <% cargosOrdenados.forEach(([cargo, count], index) => { %>
+                                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <span class="badge bg-secondary me-2">#<%= index + 1 %></span>
+                                                        <%= cargo %>
+                                                    </div>
+                                                    <span class="badge bg-primary rounded-pill"><%= count %></span>
+                                                </div>
+                                            <% }); %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos desde el backend
+        const inscritosPorHora = <%- JSON.stringify(inscritosPorHora || []) %>;
+        
+        // Datos de cargos
+        const cargosData = {
+            'ASISTENTE DE MEGACENTRO': <%= cargos['ASISTENTE DE MEGACENTRO'] || 0 %>,
+            'NOTARIO OPERADOR RURAL': <%= cargos['NOTARIO OPERADOR RURAL'] || 0 %>,
+            'NOTARIO OPERADOR URBANO': <%= cargos['NOTARIO OPERADOR URBANO'] || 0 %>,
+            'TECNICO LOGISTICO': <%= cargos['TECNICO LOGISTICO'] || 0 %>
+        };
+
+        // Colores para los gráficos
+        const coloresCargos = {
+            'ASISTENTE DE MEGACENTRO': '#667eea',
+            'NOTARIO OPERADOR RURAL': '#f093fb',
+            'NOTARIO OPERADOR URBANO': '#4facfe',
+            'TECNICO LOGISTICO': '#43e97b'
+        };
+
+        // Gráfico de distribución por cargos (Pie Chart)
+        const ctxCargos = document.getElementById('graficoCargos').getContext('2d');
+        new Chart(ctxCargos, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(cargosData),
+                datasets: [{
+                    data: Object.values(cargosData),
+                    backgroundColor: [
+                        coloresCargos['ASISTENTE DE MEGACENTRO'],
+                        coloresCargos['NOTARIO OPERADOR RURAL'],
+                        coloresCargos['NOTARIO OPERADOR URBANO'],
+                        coloresCargos['TECNICO LOGISTICO']
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de inscripciones por hora (Line Chart)
+        if (inscritosPorHora && inscritosPorHora.length > 0) {
+            const horas = inscritosPorHora.map(item => {
+                const fecha = new Date(item.hora);
+                return fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            });
+            const cantidades = inscritosPorHora.map(item => parseInt(item.cantidad));
+
+            // Calcular estadísticas
+            const maxInscritos = Math.max(...cantidades);
+            const horaPicoIndex = cantidades.indexOf(maxInscritos);
+            const horaPico = horas[horaPicoIndex];
+            const promedioInscritos = (cantidades.reduce((a, b) => a + b, 0) / cantidades.length).toFixed(1);
+
+            // Actualizar estadísticas en el DOM
+            document.getElementById('horaPico').textContent = horaPico || '--:--';
+            document.getElementById('maxInscritos').textContent = maxInscritos;
+            document.getElementById('promedioInscritos').textContent = promedioInscritos;
+
+            const ctxInscritos = document.getElementById('graficoInscritos').getContext('2d');
+            new Chart(ctxInscritos, {
+                type: 'line',
+                data: {
+                    labels: horas,
+                    datasets: [{
+                        label: 'Inscritos por Hora',
+                        data: cantidades,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#3498db',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Inscritos'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Hora del Día'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        } else {
+            document.getElementById('graficoInscritos').innerHTML = 
+                '<div class="text-center text-muted p-4">No hay datos de inscripciones por hora disponibles</div>';
+        }
+
+        // Simular datos para estadísticas detalladas (en un sistema real estos vendrían del backend)
+        document.getElementById('postulacionesHoy').textContent = <%= Math.floor(stats.total * 0.1) %>;
+        document.getElementById('postulacionesSemana').textContent = <%= Math.floor(stats.total * 0.3) %>;
+        document.getElementById('tasaCrecimiento').textContent = '15%';
+    </script>
+</body>
+</html>

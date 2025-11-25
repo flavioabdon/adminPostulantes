@@ -1,227 +1,962 @@
-<!-- postulantes.ejs -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Lista de Postulantes</h5>
-        <span class="badge bg-primary"><%= postulantes.length %> registros</span>
-    </div>
-    <div class="card-body">
-        <% if (error_msg && error_msg.length > 0) { %>
-            <div class="alert alert-danger"><%= error_msg %></div>
-        <% } %>
-        <form method="GET" action="/admin/postulantes/search" class="mb-3">
-            <div class="input-group">
-                <input type="text" name="ci" class="form-control mx-3" placeholder="Buscar por CI">
-                <input type="text" name="apellido" class="form-control mx-3" placeholder="Buscar por Apellido">
-                <button type="submit" class="btn btn-primary mx-3">Buscar</button>
-                <a href="/admin/postulantes">
-                    <button type="button" class="btn btn-danger mx-1">Limpiar</button>
-                </a>
-            </div>
-        </form>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Postulantes - Panel Administrativo</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/styles.css">
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #e67e22;
+            --light-bg: #f8f9fa;
+            --border-color: #e9ecef;
+        }
         
+        body {
+            background-color: #f5f7f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
         
-        <form id="exportForm" action="/admin/exportar-postulantes" method="POST">
+        .navbar {
+            background: var(--primary-color) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+            color: #ecf0f1 !important;
+        }
+        
+        .nav-link {
+            color: #bdc3c7 !important;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: #ecf0f1 !important;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        .card-header {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 8px 8px 0 0 !important;
+            font-weight: 600;
+            border: none;
+        }
+        
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .export-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--success-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .btn-primary {
+            background: var(--accent-color);
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-success {
+            background: var(--success-color);
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        
+        .btn-outline-primary {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            border-radius: 6px;
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table th {
+            background: var(--light-bg);
+            color: var(--primary-color);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            padding: 12px 8px;
+        }
+        
+        .table td {
+            padding: 12px 8px;
+            vertical-align: middle;
+            border-color: var(--border-color);
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .badge {
+            font-weight: 500;
+            border-radius: 4px;
+        }
+        
+        .badge.bg-primary {
+            background: var(--accent-color) !important;
+        }
+        
+        .badge.bg-success {
+            background: var(--success-color) !important;
+        }
+        
+        .badge.bg-warning {
+            background: var(--warning-color) !important;
+        }
+        
+        /* Colores para diferentes cargos */
+        .cargo-coordinador { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .cargo-supervisor { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .cargo-operador { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .cargo-tecnico { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
+        .cargo-administrativo { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+        .cargo-analista { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #2c3e50; }
+        .cargo-otro { background: #95a5a6; color: white; }
+        
+        .file-badge {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.75rem;
+        }
+        
+        .file-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .pagination .page-link {
+            color: var(--accent-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .pagination .page-item.active .page-link {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .form-control, .form-select {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 12px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.1);
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+        
+        .alert-success {
+            border-left-color: var(--success-color);
+            background: rgba(39, 174, 96, 0.1);
+        }
+        
+        .alert-danger {
+            border-left-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .alert-info {
+            border-left-color: var(--accent-color);
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .page-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .page-subtitle {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+        
+        .stats-badge {
+            background: var(--light-bg);
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #bdc3c7;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        /* Responsive table styles */
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 15px;
+            }
             
-            <div class="row mb-3">
-                <!-- <div class="col-md-4"> -->
-                    <!-- <select class="form-select" name="tipo" id="exportType" required>
-                        <option value="">Seleccione acción...</option>
-                        <option value="excel">Exportar selección a Excel</option>
-                        <option value="pdf">Exportar selección a PDF</option>
-                    </select> -->
-                <!-- </div> -->
-                 <div class="col-md-4"></div>
-                <div class="col-md-4">
-                    <!-- <button type="button" id="exportSelectedBtn" class="btn btn-primary me-2">
-                        <i class="bi bi-download"></i> Exportar selección
-                    </button> -->
-                    <a href="/admin/exportar-todos-excel" id="exportAllExcelBtn" class="btn btn-success">
-                        <i class="bi bi-file-excel"></i> Descargar todo Excel
-                    </a>
-                </div>
-            </div>
-        </form>
+            .table-responsive {
+                font-size: 0.875rem;
+                border: 1px solid var(--border-color);
+                border-radius: 6px;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn-group .btn {
+                margin-bottom: 5px;
+                width: 100%;
+            }
+            
+            .search-section .row > div {
+                margin-bottom: 15px;
+            }
+            
+            /* Mobile table styles */
+            .table-mobile-view {
+                display: block;
+            }
+            
+            .table-mobile-view thead {
+                display: none;
+            }
+            
+            .table-mobile-view tbody tr {
+                display: block;
+                margin-bottom: 15px;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 15px;
+                background: white;
+                box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+            }
+            
+            .table-mobile-view tbody td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 0;
+                border: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .table-mobile-view tbody td:last-child {
+                border-bottom: none;
+            }
+            
+            .table-mobile-view tbody td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: var(--primary-color);
+                margin-right: 10px;
+                flex: 1;
+            }
+            
+            .table-mobile-view tbody td .mobile-value {
+                flex: 2;
+                text-align: right;
+            }
+            
+            .mobile-checkbox {
+                margin-right: 10px;
+            }
+        }
         
-            <table id="postulantesTable" class="table table-striped table-bordered" style="width:100%">
-                <thead>
-                    <tr>
-                        <th width="20px">
-                            <input type="checkbox" id="selectAll">
-                        </th>
-                        <th>ID</th>
-                        <th>Nombre Completo</th>
-                        <th>CI</th>
-                        <th>Nivel de estudios</th>
-                        <th>Carrera</th>
-                        <th>Nro de procesos Experiencia</th>
-                        <th>Celular</th>
-                        <th>Fecha Registro</th>
-                        <th>CI</th>
-                        <th>No Militancia</th>
-                        <th>Hoja de Vida</th>
-                        <th>Screenshot</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% postulantes.forEach(postulante => { %>
-                        <tr>
-                            <td>
-                                <input type="checkbox" name="ids" value="<%= postulante.id %>">
-                            </td>
-                            <td><%= postulante.id %></td>
-                            <td><%= `${postulante.nombre} ${postulante.apellido_paterno} ${postulante.apellido_materno}` %></td>
-                            <td><%= `${postulante.cedula_identidad}${postulante.complemento || ''} ${postulante.expedicion}` %></td>
-                            <td><%= postulante.grado_instruccion %></td>
-                            <td><%= postulante.carrera %></td>
-                            <td><%= postulante.experiencia_general %></td>
-                            <td><%= postulante.celular %></td>
-                            <td>
-                                <%= new Intl.DateTimeFormat('es-BO', {
-                                    timeZone: 'America/La_Paz',
-                                    year: 'numeric',
-                                    month: 'numeric',
-                                    day: 'numeric',
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                    second: '2-digit',
-                                    hour12: true
-                                }).format(new Date(postulante.fecha_registro)) %>
-                            </td>
-                            <td>
-                                <% if (postulante.archivo_ci) { %>
-                                    <button class="btn btn-sm btn-outline-primary view-file-btn"
-                                            data-file-url="http://34.176.50.193:5055/<%= postulante.archivo_ci %>"
-                                            data-file-type="<%= postulante.archivo_ci.split('.').pop().toLowerCase() %>"
-                                            title="Ver CI">
-                                        <i class="bi bi-file-earmark-pdf"></i>
-                                    </button>
-                                <% } else { %>
-                                    <span class="badge bg-secondary">No subido</span>
-                                <% } %>
-                            </td>
-                            
-                            <!-- Columna para archivo_no_militancia -->
-                            <td>
-                                <% if (postulante.archivo_no_militancia) { %>
-                                    <button class="btn btn-sm btn-outline-primary view-file-btn"
-                                            data-file-url="http://34.176.50.193:5055/<%= postulante.archivo_no_militancia %>"
-                                            data-file-type="<%= postulante.archivo_no_militancia.split('.').pop().toLowerCase() %>"
-                                            title="Ver Certificado de No Militancia">
-                                        <i class="bi bi-file-earmark-pdf"></i>
-                                    </button>
-                                <% } else { %>
-                                    <span class="badge bg-secondary">No subido</span>
-                                <% } %>
-                            </td>
-                            
-                            <!-- Columna para archivo_hoja_de_vida -->
-                            <td>
-                                <% if (postulante.archivo_hoja_de_vida) { %>
-                                    <button class="btn btn-sm btn-outline-primary view-file-btn"
-                                            data-file-url="http://34.176.50.193:5055/<%= postulante.archivo_hoja_de_vida %>"
-                                            data-file-type="<%= postulante.archivo_hoja_de_vida.split('.').pop().toLowerCase() %>"
-                                            title="Ver Hoja de Vida">
-                                        <i class="bi bi-file-earmark-word"></i>
-                                    </button>
-                                <% } else { %>
-                                    <span class="badge bg-secondary">No subido</span>
-                                <% } %>
-                            </td>
-                            
-                            <!-- Columna para archivo_screenshot -->
-                            <td>
-                                <% if (postulante.archivo_screenshot_celular) { %>
-                                    <button class="btn btn-sm btn-outline-primary view-file-btn"
-                                            data-file-url="http://34.176.50.193:5055/<%= postulante.archivo_screenshot_celular %>"
-                                            data-file-type="<%= postulante.archivo_screenshot_celular.split('.').pop().toLowerCase() %>"
-                                            title="Ver Screenshot">
-                                        <i class="bi bi-file-earmark-image"></i>
-                                    </button>
-                                <% } else { %>
-                                    <span class="badge bg-secondary">No subido</span>
-                                <% } %>
-                            </td>
-                        </tr>
-                    <% }); %>
-                </tbody>
+        /* DataTables responsive enhancements */
+        .dt-responsive thead th {
+            position: sticky;
+            top: 0;
+            background: var(--light-bg);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar Integrado -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/admin/dashboard">
+                <i class="bi bi-shield-check me-2"></i>
+                Panel Administrativo
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/dashboard">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/postulantes">
+                            <i class="bi bi-people me-1"></i>Postulantes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/estadisticas">
+                            <i class="bi bi-bar-chart me-1"></i>Estadísticas
+                        </a>
+                    </li>
+                    <% if (user && user.rol === 'admin') { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/users">
+                            <i class="bi bi-person-gear me-1"></i>Usuarios
+                        </a>
+                    </li>
+                    <% } %>
+                </ul>
                 
-            </table>
-            <% if (!isSearch) { %> 
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        <% if (currentPage > 3) { %>
-                            <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
-                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                        <% } %>
-
-                        <% 
-                            const start = Math.max(1, currentPage - 2);
-                            const end = Math.min(totalPages, currentPage + 2);
-                            for (let i = start; i <= end; i++) { 
-                        %>
-                            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <%= user ? user.username : 'Usuario' %>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><span class="dropdown-item-text">
+                                <small class="text-muted"><%= user ? user.email : '' %></small>
+                            </span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="/logout">
+                                    <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
+                                </a>
                             </li>
-                        <% } %>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-                        <% if (currentPage < totalPages - 2) { %>
-                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                            <li class="page-item"><a class="page-link" href="?page=<%= totalPages %>"><%= totalPages %></a></li>
-                        <% } %>
-
-                        <% if (currentPage < totalPages) { %>
-                            <li class="page-item">
-                            <a class="page-link" href="?page=<%= currentPage + 1 %>">»</a>
-                            </li>
-                        <% } %>
-                    </ul>
-                </nav>
-            <% } %>
-
-        
-    </div>
-    <!-- Modal para visualización de archivos -->
-    <div class="modal fade" id="archivoModal" tabindex="-1" aria-labelledby="archivoModalLabel" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 95%; height: 90vh;">
-            <div class="modal-content h-100">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="archivoModalLabel">Visualización de Documento</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Header Section -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="page-title">
+                            <i class="bi bi-people-fill me-2"></i>Gestión de Postulantes
+                        </h1>
+                        <p class="page-subtitle">Administra y exporta la información de los postulantes</p>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge stats-badge fs-6 px-3 py-2">
+                            <i class="bi bi-person-check me-1"></i>
+                            Total: <span id="totalPostulantes">0</span>
+                        </span>
+                    </div>
                 </div>
-                <div class="modal-body text-center p-0" style="height: calc(100% - 120px);">
-                    <div class="spinner-border text-primary my-5" id="loadingSpinner" role="status">
-                        <span class="visually-hidden">Cargando...</span>
+
+                <!-- Search Section -->
+                <div class="search-section">
+                    <h5 class="mb-3 text-dark">
+                        <i class="bi bi-search me-2"></i>Búsqueda de Postulantes
+                    </h5>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label fw-medium text-dark">
+                                Buscar por Cédula de Identidad
+                            </label>
+                            <form action="http://34.176.50.193:5055/admin/postulantes/search" method="GET" class="d-flex">
+                                <input type="number" 
+                                       class="form-control me-2" 
+                                       name="ci" 
+                                       placeholder="Ingrese CI (solo números)"
+                                       min="0">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-medium text-dark">
+                                Buscar por Apellido
+                            </label>
+                            <form action="http://34.176.50.193:5055/admin/postulantes/search" method="GET" class="d-flex">
+                                <input type="text" 
+                                       class="form-control me-2" 
+                                       name="apellido" 
+                                       placeholder="Ingrese apellido paterno o materno">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </form>
+                        </div>
+
                     </div>
-                    
-                    <!-- Visor de PDF más grande -->
-                    <div id="pdf-viewer" style="display: none; height: 100%;">
-                        <iframe id="pdf-iframe" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+
+                <!-- Messages -->
+                <% if (success_msg && success_msg.length > 0) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <%= success_msg %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
-                    
-                    <!-- Visor de imágenes más grande -->
-                    <div id="image-viewer" style="display: none; height: 100%; overflow: auto;">
-                        <img id="image-preview" src="" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                <% } %>
+                
+                <% if (error_msg && error_msg.length > 0) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <%= error_msg %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
-                    
-                    <div id="unsupported-viewer" style="display: none; height: 100%;">
-                        <div class="d-flex flex-column justify-content-center align-items-center h-100">
-                            <i class="bi bi-file-earmark-x fs-1 text-muted mb-3"></i>
-                            <p class="fs-5">Este tipo de archivo no puede mostrarse en el visor</p>
-                            <a id="download-link" href="#" class="btn btn-primary btn-lg">
-                                <i class="bi bi-download"></i> Descargar Archivo
-                            </a>
+                <% } %>
+                
+                <% if (info_msg && info_msg.length > 0) { %>
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <%= info_msg %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <% } %>
+
+                <!-- Export Section -->
+                <div class="export-section">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="mb-3 text-dark">
+                                <i class="bi bi-download me-2"></i>Exportar Datos
+                            </h5>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <a href="/admin/exportar-todos-excel" id="exportAllExcelBtn" class="btn btn-success">
+                                    <i class="bi bi-file-earmark-excel me-1"></i>Descargar Todo Excel
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <div class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <span id="selectedCount">0</span> postulantes seleccionados
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="modalCloseBtn">
-                        <i class="bi bi-x-lg"></i> Cerrar
-                    </button>
-                    <a id="full-download-link" href="#" class="btn btn-primary">
-                        <i class="bi bi-download"></i> Descargar
-                    </a>
+
+                <!-- Data Table Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0 text-white">
+                                <i class="bi bi-table me-2"></i>Lista de Postulantes
+                            </h5>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                <label class="form-check-label text-white" for="selectAll">
+                                    Seleccionar Todos
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Loading Spinner -->
+                        <div class="loading-spinner" id="loadingSpinner">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Cargando postulantes...</p>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div class="empty-state" id="emptyState" style="display: none;">
+                            <i class="bi bi-people"></i>
+                            <h4>No se encontraron postulantes</h4>
+                            <p class="text-muted">No hay datos que mostrar en este momento.</p>
+                        </div>
+
+                        <!-- Data Table - Desktop View -->
+                        <div class="table-responsive d-none d-md-block" id="tableContainerDesktop">
+                            <table id="postulantesTable" class="table table-hover dt-responsive" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th width="30px">
+                                            <input type="checkbox" id="selectAllHeader">
+                                        </th>
+                                        <th>ID</th>
+                                        <th>Nombre Completo</th>
+                                        <th>CI</th>
+                                        <th>Email</th>
+                                        <th>Celular</th>
+                                        <th>Cargo</th>
+                                        <th>Fecha Registro</th>
+                                        <th>Archivos</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (postulantes && postulantes.length > 0) { %>
+                                        <% postulantes.forEach(postulante => { %>
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" class="postulante-checkbox" value="<%= postulante.id %>">
+                                                </td>
+                                                <td><strong><%= postulante.id %></strong></td>
+                                                <td>
+                                                    <div class="fw-medium"><%= postulante.nombre %></div>
+                                                    <small class="text-muted">
+                                                        <%= postulante.apellido_paterno %> <%= postulante.apellido_materno %>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-primary">
+                                                        <%= postulante.cedula_identidad %>
+                                                        <% if (postulante.complemento) { %>
+                                                            <%= postulante.complemento %>
+                                                        <% } %>
+                                                    </span>
+                                                    <br>
+                                                    <small class="text-muted"><%= postulante.expedicion %></small>
+                                                </td>
+                                                <td>
+                                                    <% if (postulante.email) { %>
+                                                        <a href="mailto:<%= postulante.email %>" class="text-decoration-none text-dark">
+                                                            <i class="bi bi-envelope me-1"></i><%= postulante.email %>
+                                                        </a>
+                                                    <% } else { %>
+                                                        <span class="text-muted">No especificado</span>
+                                                    <% } %>
+                                                </td>
+                                                <td>
+                                                    <% if (postulante.celular) { %>
+                                                        <span class="badge bg-success">
+                                                            <i class="bi bi-phone me-1"></i><%= postulante.celular %>
+                                                        </span>
+                                                    <% } else { %>
+                                                        <span class="text-muted">No especificado</span>
+                                                    <% } %>
+                                                </td>
+                                                <td>
+                                                    <% 
+                                                        let cargoClass = 'cargo-otro';
+                                                        if (postulante.cargo_postulacion) {
+                                                            const cargo = postulante.cargo_postulacion.toLowerCase();
+                                                            if (cargo.includes('coordinador')) cargoClass = 'cargo-coordinador';
+                                                            else if (cargo.includes('supervisor')) cargoClass = 'cargo-supervisor';
+                                                            else if (cargo.includes('operador')) cargoClass = 'cargo-operador';
+                                                            else if (cargo.includes('técnico') || cargo.includes('tecnico')) cargoClass = 'cargo-tecnico';
+                                                            else if (cargo.includes('administrativo')) cargoClass = 'cargo-administrativo';
+                                                            else if (cargo.includes('analista')) cargoClass = 'cargo-analista';
+                                                        }
+                                                    %>
+                                                    <span class="badge <%= cargoClass %>">
+                                                        <%= postulante.cargo_postulacion || 'No especificado' %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">
+                                                        <%= new Date(postulante.fecha_registro).toLocaleDateString('es-ES') %>
+                                                    </small>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <%= new Date(postulante.fecha_registro).toLocaleTimeString('es-ES') %>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        <% if (postulante.archivo_ci) { %>
+                                                            <span class="badge file-badge bg-info text-white" 
+                                                                  data-file-url="<%= postulante.archivo_ci %>" 
+                                                                  data-file-type="pdf">
+                                                                <i class="bi bi-file-earmark-pdf me-1"></i>CI
+                                                            </span>
+                                                        <% } %>
+                                                        <% if (postulante.archivo_hoja_de_vida) { %>
+                                                            <span class="badge file-badge bg-success text-white" 
+                                                                  data-file-url="<%= postulante.archivo_hoja_de_vida %>" 
+                                                                  data-file-type="pdf">
+                                                                <i class="bi bi-file-earmark-text me-1"></i>CV
+                                                            </span>
+                                                        <% } %>
+                                                        <% if (postulante.archivo_no_militancia) { %>
+                                                            <span class="badge file-badge bg-warning text-dark" 
+                                                                  data-file-url="<%= postulante.archivo_no_militancia %>" 
+                                                                  data-file-type="pdf">
+                                                                <i class="bi bi-file-earmark-check me-1"></i>No Militancia
+                                                            </span>
+                                                        <% } %>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-outline-primary" 
+                                                                data-bs-toggle="tooltip" 
+                                                                title="Ver detalles">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-outline-info view-file-btn"
+                                                                data-bs-toggle="tooltip"
+                                                                title="Ver archivos"
+                                                                data-file-url="<%= postulante.archivo_ci || '#' %>"
+                                                                data-file-type="pdf">
+                                                            <i class="bi bi-folder2-open"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="10" class="text-center py-4">
+                                                <div class="empty-state">
+                                                    <i class="bi bi-people"></i>
+                                                    <h5>No hay postulantes registrados</h5>
+                                                    <p class="text-muted">Los postulantes aparecerán aquí una vez que se registren.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Mobile Table View -->
+                        <div class="d-md-none" id="tableContainerMobile">
+                            <% if (postulantes && postulantes.length > 0) { %>
+                                <div class="table-mobile-view">
+                                    <table class="table">
+                                        <tbody>
+                                            <% postulantes.forEach(postulante => { %>
+                                                <% 
+                                                    let cargoClass = 'cargo-otro';
+                                                    if (postulante.cargo_postulacion) {
+                                                        const cargo = postulante.cargo_postulacion.toLowerCase();
+                                                        if (cargo.includes('coordinador')) cargoClass = 'cargo-coordinador';
+                                                        else if (cargo.includes('supervisor')) cargoClass = 'cargo-supervisor';
+                                                        else if (cargo.includes('operador')) cargoClass = 'cargo-operador';
+                                                        else if (cargo.includes('técnico') || cargo.includes('tecnico')) cargoClass = 'cargo-tecnico';
+                                                        else if (cargo.includes('administrativo')) cargoClass = 'cargo-administrativo';
+                                                        else if (cargo.includes('analista')) cargoClass = 'cargo-analista';
+                                                    }
+                                                %>
+                                                <tr>
+                                                    <td data-label="Seleccionar">
+                                                        <input type="checkbox" class="postulante-checkbox mobile-checkbox" value="<%= postulante.id %>">
+                                                    </td>
+                                                    <td data-label="ID">
+                                                        <div class="mobile-value"><strong><%= postulante.id %></strong></div>
+                                                    </td>
+                                                    <td data-label="Nombre">
+                                                        <div class="mobile-value">
+                                                            <div class="fw-medium"><%= postulante.nombre %></div>
+                                                            <small class="text-muted">
+                                                                <%= postulante.apellido_paterno %> <%= postulante.apellido_materno %>
+                                                            </small>
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="CI">
+                                                        <div class="mobile-value">
+                                                            <span class="badge bg-primary">
+                                                                <%= postulante.cedula_identidad %><%= postulante.complemento || '' %>
+                                                            </span>
+                                                            <br>
+                                                            <small class="text-muted"><%= postulante.expedicion %></small>
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Email">
+                                                        <div class="mobile-value">
+                                                            <% if (postulante.email) { %>
+                                                                <a href="mailto:<%= postulante.email %>" class="text-decoration-none text-dark">
+                                                                    <i class="bi bi-envelope me-1"></i><%= postulante.email %>
+                                                                </a>
+                                                            <% } else { %>
+                                                                <span class="text-muted">No especificado</span>
+                                                            <% } %>
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Celular">
+                                                        <div class="mobile-value">
+                                                            <% if (postulante.celular) { %>
+                                                                <span class="badge bg-success">
+                                                                    <i class="bi bi-phone me-1"></i><%= postulante.celular %>
+                                                                </span>
+                                                            <% } else { %>
+                                                                <span class="text-muted">No especificado</span>
+                                                            <% } %>
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Cargo">
+                                                        <div class="mobile-value">
+                                                            <span class="badge <%= cargoClass %>">
+                                                                <%= postulante.cargo_postulacion || 'No especificado' %>
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Fecha Registro">
+                                                        <div class="mobile-value">
+                                                            <small class="text-muted">
+                                                                <%= new Date(postulante.fecha_registro).toLocaleDateString('es-ES') %>
+                                                            </small>
+                                                            <br>
+                                                            <small class="text-muted">
+                                                                <%= new Date(postulante.fecha_registro).toLocaleTimeString('es-ES') %>
+                                                            </small>
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Archivos">
+                                                        <div class="mobile-value">
+                                                            <div class="d-flex flex-wrap gap-1">
+                                                                <% if (postulante.archivo_ci) { %>
+                                                                    <span class="badge file-badge bg-info text-white" 
+                                                                          data-file-url="<%= postulante.archivo_ci %>" 
+                                                                          data-file-type="pdf">
+                                                                        <i class="bi bi-file-earmark-pdf me-1"></i>CI
+                                                                    </span>
+                                                                <% } %>
+                                                                <% if (postulante.archivo_hoja_de_vida) { %>
+                                                                    <span class="badge file-badge bg-success text-white" 
+                                                                          data-file-url="<%= postulante.archivo_hoja_de_vida %>" 
+                                                                          data-file-type="pdf">
+                                                                        <i class="bi bi-file-earmark-text me-1"></i>CV
+                                                                    </span>
+                                                                <% } %>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Acciones">
+                                                        <div class="mobile-value">
+                                                            <div class="btn-group btn-group-sm">
+                                                                <button class="btn btn-outline-primary btn-sm">
+                                                                    <i class="bi bi-eye"></i>
+                                                                </button>
+                                                                <button class="btn btn-outline-info btn-sm view-file-btn"
+                                                                        data-file-url="<%= postulante.archivo_ci || '#' %>"
+                                                                        data-file-type="pdf">
+                                                                    <i class="bi bi-folder2-open"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <% } else { %>
+                                <div class="empty-state">
+                                    <i class="bi bi-people"></i>
+                                    <h5>No hay postulantes registrados</h5>
+                                    <p class="text-muted">Los postulantes aparecerán aquí una vez que se registren.</p>
+                                </div>
+                            <% } %>
+                        </div>
+
+                        <!-- Pagination -->
+                        <% if (totalPages > 1) { %>
+                            <nav aria-label="Page navigation" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    <% if (currentPage > 1) { %>
+                                        <li class="page-item">
+                                            <a class="page-link" href="/admin/postulantes?page=<%= currentPage - 1 %>">
+                                                <i class="bi bi-chevron-left"></i> Anterior
+                                            </a>
+                                        </li>
+                                    <% } %>
+                                    
+                                    <% for (let i = 1; i <= totalPages; i++) { %>
+                                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                            <a class="page-link" href="/admin/postulantes?page=<%= i %>"><%= i %></a>
+                                        </li>
+                                    <% } %>
+                                    
+                                    <% if (currentPage < totalPages) { %>
+                                        <li class="page-item">
+                                            <a class="page-link" href="/admin/postulantes?page=<%= currentPage + 1 %>">
+                                                Siguiente <i class="bi bi-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    <% } %>
+                                </ul>
+                            </nav>
+                        <% } %>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- File Viewer Modal -->
+    <div class="modal fade" id="archivoModal" tabindex="-1" aria-labelledby="archivoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="archivoModalLabel">Visualizar Archivo</h5>
+                    <div class="d-flex gap-2">
+                        <button id="fullscreenBtn" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-fullscreen"></i> Pantalla completa
+                        </button>
+                        <a id="download-link" class="btn btn-primary btn-sm" download>
+                            <i class="bi bi-download"></i> Descargar
+                        </a>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="loading-spinner" id="modalLoadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando archivo...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Cargando archivo...</p>
+                    </div>
+                    <div id="pdf-viewer" style="display: none; height: 600px;">
+                        <iframe id="pdf-iframe" src="" width="100%" height="100%" style="border: none;"></iframe>
+                    </div>
+                    <div id="image-viewer" style="display: none; text-align: center;">
+                        <img id="image-preview" src="" alt="Vista previa" style="max-height: 600px; max-width: 100%;">
+                    </div>
+                    <div id="unsupported-viewer" style="display: none; text-align: center; padding: 40px;">
+                        <i class="bi bi-file-earmark-x" style="font-size: 4rem; color: #6c757d;"></i>
+                        <h5 class="mt-3">Formato no compatible</h5>
+                        <p class="text-muted">Este tipo de archivo no se puede visualizar en el navegador.</p>
+                        <a id="full-download-link" class="btn btn-primary" download>
+                            <i class="bi bi-download me-1"></i> Descargar Archivo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/admin.js"></script>
+
+    <script>
+        // Inicializar tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Actualizar contadores
+        function updateCounters() {
+            const totalPostulantes = <%= postulantes ? postulantes.length : 0 %>;
+            const selectedCount = $('.postulante-checkbox:checked').length;
+            
+            $('#totalPostulantes').text(totalPostulantes);
+            $('#selectedCount').text(selectedCount);
+            
+            // Mostrar/ocultar empty state
+            if (totalPostulantes === 0) {
+                $('#emptyState').show();
+                $('#tableContainerDesktop').hide();
+                $('#tableContainerMobile').hide();
+            } else {
+                $('#emptyState').hide();
+                $('#tableContainerDesktop').show();
+                $('#tableContainerMobile').show();
+            }
+        }
+
+        // Selección/deselección de checkboxes
+        $('#selectAllHeader, #selectAll').on('change', function() {
+            const isChecked = $(this).prop('checked');
+            $('.postulante-checkbox').prop('checked', isChecked);
+            updateCounters();
+        });
+
+        $('.postulante-checkbox').on('change', function() {
+            updateCounters();
+        });
+
+        // Inicializar contadores
+        $(document).ready(function() {
+            updateCounters();
+            
+            // Configurar eventos de los badges de archivos
+            $('.file-badge').on('click', function() {
+                const fileUrl = $(this).data('file-url');
+                const fileType = $(this).data('file-type');
+                
+                if (fileUrl && fileUrl !== '#') {
+                    $('.view-file-btn')
+                        .data('file-url', fileUrl)
+                        .data('file-type', fileType)
+                        .click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

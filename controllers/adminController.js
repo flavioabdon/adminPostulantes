@@ -76,24 +76,23 @@ exports.postulantes = async (req, res) => {
     }
   }
 
-  exports.estadisticas = async (req, res) => {
-    try {
-      const stats = await Postulante.getStats();
-      // Nueva consulta: Obtener cantidad de postulantes por hora
-      const inscritosPorHora = await Postulante.getInscritosPorHora();
-      
-      res.render('admin/estadisticas', { 
-        stats,
-        inscritosPorHora, // Enviamos los datos al frontend
-        error_msg: req.flash('error_msg'),
-        success_msg: req.flash('success_msg')
-      });
-    } catch (error) {
-      console.error(error);
-      req.flash('error_msg', 'Error al obtener estadísticas');
-      res.redirect('/admin/dashboard');
-    }
-  };
+exports.estadisticas = async (req, res) => {
+  try {
+    const stats = await Postulante.getStats();
+    const inscritosPorHora = await Postulante.getInscritosPorHora();
+    
+    res.render('admin/estadisticas', { 
+      stats,
+      inscritosPorHora,
+      error_msg: req.flash('error_msg'),
+      success_msg: req.flash('success_msg')
+    });
+  } catch (error) {
+    console.error(error);
+    req.flash('error_msg', 'Error al obtener estadísticas');
+    res.redirect('/admin/dashboard');
+  }
+};
 exports.exportarTodosExcel = async (req, res) => {
     try {
         const result = await Postulante.getAll();
