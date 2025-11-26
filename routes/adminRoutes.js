@@ -9,4 +9,5 @@ router.get('/postulantes/search', isAuthenticated, isAdmin, adminController.post
 router.get('/estadisticas', isAuthenticated, isAdmin, adminController.estadisticas);
 router.post('/exportar-postulantes', isAuthenticated, isAdmin, adminController.exportarPostulantes);
 router.get('/exportar-todos-excel', isAuthenticated, isAdmin, adminController.exportarTodosExcel);
+router.get('/estadisticas-data', isAuthenticated, adminController.dashboardData);
 module.exports = router;

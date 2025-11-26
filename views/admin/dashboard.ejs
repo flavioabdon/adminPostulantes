@@ -1,48 +1,438 @@
-<div class="card">
-    <div class="card-header">
-      <h5>Dashboard</h5>
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="alert alert-info">
-            Bienvenido al panel de administración. Seleccione una opción del menú para comenzar.
-          </div>
-        </div>
-      </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Panel de Administración</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/styles.css">
+  
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #34495e;
+      --accent-color: #3498db;
+      --success-color: #27ae60;
+      --warning-color: #e67e22;
+      --light-bg: #f8f9fa;
+      --border-color: #e9ecef;
+    }
+    
+    body {
+      background-color: #f5f7f9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .navbar {
+      background: var(--primary-color) !important;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .navbar-brand {
+      font-weight: 600;
+      color: #ecf0f1 !important;
+    }
+    
+    .nav-link {
+      color: #bdc3c7 !important;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+    
+    .nav-link:hover, .nav-link.active {
+      color: #ecf0f1 !important;
+    }
+    
+    .card {
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      background: white;
+      transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+    }
+    
+    .card-header {
+      background: var(--primary-color);
+      color: white;
+      border-radius: 8px 8px 0 0 !important;
+      font-weight: 600;
+      border: none;
+    }
+    
+    .stats-card {
+      border-left: 4px solid;
+      transition: all 0.3s ease;
+    }
+    
+    .stats-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .stats-card.bg-primary { border-left-color: var(--accent-color); }
+    .stats-card.bg-success { border-left-color: var(--success-color); }
+    .stats-card.bg-info { border-left-color: #17a2b8; }
+    .stats-card.bg-warning { border-left-color: var(--warning-color); }
+    
+    .stats-number {
+      font-size: 2.5rem;
+      font-weight: 300;
+    }
+    
+    .dashboard-icon {
+      font-size: 3rem;
+      opacity: 0.7;
+    }
+    
+    .page-title {
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .page-subtitle {
+      color: #7f8c8d;
+      font-size: 0.95rem;
+    }
+    
+    .quick-action-card {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      height: 100%;
+    }
+    
+    .quick-action-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .action-icon {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+    }
+    
+    @media (max-width: 768px) {
+      .stats-number {
+        font-size: 2rem;
+      }
       
-      <div class="row mt-4">
-        <div class="col-md-4">
-          <div class="card text-white bg-primary mb-3">
-            <div class="card-body">
-              <h5 class="card-title">Postulantes</h5>
-              <p class="card-text">Gestión de postulantes registrados</p>
-              <a href="/admin/postulantes" class="btn btn-light">Ir a Postulantes</a>
-            </div>
+      .dashboard-icon {
+        font-size: 2.5rem;
+      }
+      
+      .card-body {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/admin/dashboard">
+        <i class="bi bi-shield-check me-2"></i>
+        Panel Administrativo
+      </a>
+      
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="/admin/dashboard">
+              <i class="bi bi-speedometer2 me-1"></i>Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/postulantes">
+              <i class="bi bi-people me-1"></i>Postulantes
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/estadisticas">
+              <i class="bi bi-bar-chart me-1"></i>Estadísticas
+            </a>
+          </li>
+          <% if (user && user.rol === 'admin') { %>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/users">
+              <i class="bi bi-person-gear me-1"></i>Usuarios
+            </a>
+          </li>
+          <% } %>
+        </ul>
+        
+        <ul class="navbar-nav">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle me-1"></i>
+              <%= user ? user.username : 'Usuario' %>
+            </a>
+            <ul class="dropdown-menu">
+              <li><span class="dropdown-item-text">
+                <small class="text-muted"><%= user ? user.email : '' %></small>
+              </span></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item" href="/logout">
+                  <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
+                </a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid mt-4">
+    <div class="row">
+      <div class="col-12">
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h1 class="page-title">
+              <i class="bi bi-speedometer2 me-2"></i>Dashboard
+            </h1>
+            <p class="page-subtitle">Resumen general del sistema de postulaciones</p>
+          </div>
+          <div class="d-flex align-items-center">
+            <span class="badge bg-light text-dark fs-6 px-3 py-2 border">
+              <i class="bi bi-calendar me-1"></i>
+              <%= new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
+            </span>
           </div>
         </div>
-        
-        <div class="col-md-4">
-          <div class="card text-white bg-success mb-3">
-            <div class="card-body">
-              <h5 class="card-title">Estadísticas</h5>
-              <p class="card-text">Visualización de datos estadísticos</p>
-              <a href="/admin/estadisticas" class="btn btn-light">Ver Estadísticas</a>
-            </div>
+
+        <!-- Messages -->
+        <% if (success_msg && success_msg.length > 0) { %>
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <%= success_msg %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
           </div>
-        </div>
+        <% } %>
         
-        <% if (user && user.rol === 'admin') { %>
+        <% if (error_msg && error_msg.length > 0) { %>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <%= error_msg %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <% } %>
+
+        <!-- Estadísticas Rápidas -->
+        <div class="row mb-4">
           <div class="col-md-4">
-            <div class="card text-white bg-warning mb-3">
+            <div class="card text-white bg-primary stats-card">
               <div class="card-body">
-                <h5 class="card-title">Usuarios</h5>
-                <p class="card-text">Administración de usuarios del sistema</p>
-                <a href="/admin/users" class="btn btn-light">Gestionar Usuarios</a>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="card-title mb-1">Total Postulantes</h6>
+                    <h1 class="stats-number mb-0" id="totalPostulantes">0</h1>
+                    <small class="opacity-75">Registros totales</small>
+                  </div>
+                  <i class="bi bi-people-fill dashboard-icon"></i>
+                </div>
               </div>
             </div>
           </div>
-        <% } %>
+          <div class="col-md-4">
+            <div class="card text-white bg-info stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="card-title mb-1">Cargos Activos</h6>
+                    <h1 class="stats-number mb-0">4</h1>
+                    <small class="opacity-75">Tipos diferentes</small>
+                  </div>
+                  <i class="bi bi-briefcase-fill dashboard-icon"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card text-white bg-warning stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="card-title mb-1">Estado Sistema</h6>
+                    <h1 class="stats-number mb-0">Activo</h1>
+                    <small class="opacity-75">Todo operativo</small>
+                  </div>
+                  <i class="bi bi-check-circle-fill dashboard-icon"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="bi bi-lightning me-2"></i>Acciones Rápidas
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="card quick-action-card bg-light" onclick="window.location.href='/admin/postulantes'">
+                      <div class="card-body text-center">
+                        <i class="bi bi-people-fill action-icon text-primary"></i>
+                        <h6>Gestionar Postulantes</h6>
+                        <small class="text-muted">Ver y administrar postulaciones</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card quick-action-card bg-light" onclick="window.location.href='/admin/estadisticas'">
+                      <div class="card-body text-center">
+                        <i class="bi bi-bar-chart-fill action-icon text-success"></i>
+                        <h6>Ver Estadísticas</h6>
+                        <small class="text-muted">Métricas y análisis</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card quick-action-card bg-light" onclick="window.location.href='/admin/exportar-todos-excel'">
+                      <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-excel-fill action-icon text-info"></i>
+                        <h6>Exportar Datos</h6>
+                        <small class="text-muted">Descargar en Excel</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card quick-action-card bg-light" onclick="window.location.href='/admin/users'">
+                      <div class="card-body text-center">
+                        <i class="bi bi-person-gear action-icon text-warning"></i>
+                        <h6>Gestionar Usuarios</h6>
+                        <small class="text-muted">Administrar acceso</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="bi bi-info-circle me-2"></i>Información del Sistema
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="list-group list-group-flush">
+                  <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Versión del Sistema</span>
+                    <span class="badge bg-primary">v1.0.0</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Base de Datos</span>
+                    <span class="badge bg-success">PostgreSQL</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Servidor</span>
+                    <span class="badge bg-info">Node.js</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Última Actualización</span>
+                    <small class="text-muted">Hoy</small>
+                  </div>
+                </div>
+                
+                <div class="mt-4">
+                  <h6 class="text-muted mb-3">Cargos Disponibles</h6>
+                  <div class="d-flex flex-wrap gap-2">
+                    <span class="badge cargo-asistente">ASISTENTE DE MEGACENTRO</span>
+                    <span class="badge cargo-notario-rural">NOTARIO OPERADOR RURAL</span>
+                    <span class="badge cargo-notario-urbano">NOTARIO OPERADOR URBANO</span>
+                    <span class="badge cargo-tecnico">TECNICO LOGISTICO</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    .cargo-asistente { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 6px 12px; }
+    .cargo-notario-rural { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 6px 12px; }
+    .cargo-notario-urbano { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 6px 12px; }
+    .cargo-tecnico { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 6px 12px; }
+  </style>
+
+  <script>
+    $(document).ready(function() {
+      // Cargar estadísticas
+      loadDashboardStats();
+      
+      // Actualizar cada 30 segundos
+      setInterval(loadDashboardStats, 30000);
+    });
+
+    function loadDashboardStats() {
+      $.ajax({
+        url: '/admin/estadisticas-data',
+        method: 'GET',
+        success: function(data) {
+          if (data && data.stats) {
+            $('#totalPostulantes').text(data.stats.total);
+            // Calcular postulaciones de hoy (simulado)
+            const postulacionesHoy = Math.floor(data.stats.total * 0.1);
+            $('#postulacionesHoy').text(postulacionesHoy);
+          }
+        },
+        error: function() {
+          console.log('Error al cargar estadísticas del dashboard');
+        }
+      });
+    }
+
+    // Si no existe la ruta de estadísticas-data, usar valores por defecto
+    setTimeout(() => {
+      if ($('#totalPostulantes').text() === '0') {
+        $('#totalPostulantes').text('--');
+        $('#postulacionesHoy').text('--');
+      }
+    }, 2000);
+  </script>
+</body>
+</html>

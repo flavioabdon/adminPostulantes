@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    //refrescar cada cierto tiempo
+    // Refrescar cada cierto tiempo
     setInterval(function() {
         location.reload(); // Refresca la página cada 2.5 minutos
     }, 150000); // 150000 ms = 2.5 minutos
@@ -41,10 +41,14 @@ $(document).ready(function() {
         });
     }
 
-    const archivoModal = new bootstrap.Modal(document.getElementById('archivoModal'), {
-        backdrop: true,
-        keyboard: true
-    });
+    // Inicializar modal solo si existe el elemento
+    let archivoModal = null;
+    if (document.getElementById('archivoModal')) {
+        archivoModal = new bootstrap.Modal(document.getElementById('archivoModal'), {
+            backdrop: true,
+            keyboard: true
+        });
+    }
     
     let isFullscreen = false;
     let originalStyles = {};
@@ -100,14 +104,22 @@ $(document).ready(function() {
         }
     }
     
-    // Manejador de clic para pantalla completa
-    $('#fullscreenBtn').on('click', toggleFullscreen);
+    // Manejador de clic para pantalla completa (solo si existe el botón)
+    if ($('#fullscreenBtn').length) {
+        $('#fullscreenBtn').on('click', toggleFullscreen);
+    }
     
     // Manejador para los botones de visualización
     $(document).on('click', '.view-file-btn', function() {
+        // Verificar que el modal esté inicializado
+        if (!archivoModal) {
+            console.warn('Modal no inicializado');
+            return;
+        }
+
         const fileUrl = $(this).data('file-url');
         const fileType = $(this).data('file-type');
-        const fileName = fileUrl.split('/').pop();
+        const fileName = fileUrl ? fileUrl.split('/').pop() : 'Archivo';
         
         // Resetear pantalla completa si estaba activa
         if (isFullscreen) {
@@ -118,18 +130,24 @@ $(document).ready(function() {
         $('#loadingSpinner').show();
         $('#pdf-viewer, #image-viewer, #unsupported-viewer').hide();
         $('#archivoModalLabel').text(`Visualizando: ${fileName}`);
-        $('#download-link, #full-download-link').attr('href', fileUrl);
+        
+        // Configurar enlaces de descarga solo si fileUrl existe
+        if (fileUrl) {
+            $('#download-link, #full-download-link').attr('href', fileUrl);
+        } else {
+            $('#download-link, #full-download-link').attr('href', '#').off('click');
+        }
         
         // Mostrar el modal
         archivoModal.show();
         
         // Cargar contenido según tipo
-        if (fileType === 'pdf') {
+        if (fileType === 'pdf' && fileUrl) {
             $('#pdf-iframe').on('load', function() {
                 $('#loadingSpinner').hide();
                 $('#pdf-viewer').show();
             }).attr('src', fileUrl);
-        } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileType)) {
+        } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileType) && fileUrl) {
             $('#image-preview').on('load', function() {
                 $('#loadingSpinner').hide();
                 $('#image-viewer').show();
@@ -148,19 +166,29 @@ $(document).ready(function() {
         $('#pdf-viewer, #image-viewer, #unsupported-viewer').hide();
     }
     
-    $('#modalCloseBtn, .btn-close').on('click', function() {
-        resetModal();
-        archivoModal.hide();
-    });
+    // Solo agregar event listeners si los elementos existen
+    if ($('#modalCloseBtn').length) {
+        $('#modalCloseBtn').on('click', function() {
+            resetModal();
+            if (archivoModal) {
+                archivoModal.hide();
+            }
+        });
+    }
     
-    $('#archivoModal').on('hidden.bs.modal', resetModal);
+    if ($('#archivoModal').length) {
+        $('#archivoModal').on('hidden.bs.modal', resetModal);
+    }
     
     $(document).on('keydown', function(e) {
         if (e.key === 'Escape') {
             resetModal();
-            archivoModal.hide();
+            if (archivoModal) {
+                archivoModal.hide();
+            }
         }
     });
+
     // Función para manejar eventos de la tabla
     function initializeTableEvents(table) {
         // Selección/deselección global
@@ -259,4 +287,40 @@ $(document).ready(function() {
             });
         });
     }
+
+    // Manejo de checkboxes para la vista móvil
+    $('.postulante-checkbox').on('change', function() {
+        updateCounters();
+    });
+
+    $('#selectAllHeader, #selectAll').on('change', function() {
+        const isChecked = $(this).prop('checked');
+        $('.postulante-checkbox').prop('checked', isChecked);
+        updateCounters();
+    });
+
+    // Actualizar contadores
+    function updateCounters() {
+        const totalPostulantes = $('.postulante-checkbox').length;
+        const selectedCount = $('.postulante-checkbox:checked').length;
+        
+        $('#totalPostulantes').text(totalPostulantes);
+        $('#selectedCount').text(selectedCount);
+    }
+
+    // Inicializar contadores
+    updateCounters();
+    
+    // Configurar eventos de los badges de archivos
+    $('.file-badge').on('click', function() {
+        const fileUrl = $(this).data('file-url');
+        const fileType = $(this).data('file-type');
+        
+        if (fileUrl && fileUrl !== '#') {
+            $('.view-file-btn')
+                .data('file-url', fileUrl)
+                .data('file-type', fileType)
+                .click();
+        }
+    });
 });

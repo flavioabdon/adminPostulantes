@@ -138,3 +138,12 @@ exports.exportarPostulantes = async (req, res) => {
     res.redirect('/admin/postulantes');
   }
 };
+exports.dashboardData = async (req, res) => {
+  try {
+    const stats = await Postulante.getStats();
+    res.json({ stats });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al cargar datos del dashboard' });
+  }
+};
